@@ -41,7 +41,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <span className="text-primary font-bold text-xl">HomeOwners AI</span>
+              <span className="text-primary font-bold text-xl">reThink HOA AI</span>
             </Link>
           </div>
           

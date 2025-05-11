@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { 
   createUserWithEmailAndPassword, 
@@ -10,6 +9,7 @@ import {
   signInWithPopup
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import axios from "axios";
 
 interface AuthContextType {
   currentUser: User | null;
@@ -33,15 +33,27 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastVerifiedUid, setLastVerifiedUid] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       setLoading(false);
+      if (user && user.uid !== lastVerifiedUid) {
+        try {
+          const token = await user.getIdToken();
+          await axios.post("http://localhost:8000/api/auth/verify", {}, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setLastVerifiedUid(user.uid);
+        } catch (err) {
+          console.error("Failed to verify user with backend:", err);
+        }
+      }
     });
 
     return unsubscribe;
-  }, []);
+  }, [lastVerifiedUid]);
 
   async function signup(email: string, password: string) {
     await createUserWithEmailAndPassword(auth, email, password);

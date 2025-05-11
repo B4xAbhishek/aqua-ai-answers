@@ -1,9 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
 
 interface SubscriptionStatus {
   isSubscribed: boolean;
@@ -28,6 +28,19 @@ export function useSubscription() {
   return context;
 }
 
+// Helper to get Firebase ID token
+async function getFirebaseToken(currentUser: any) {
+  if (!currentUser) return null;
+  return await currentUser.getIdToken();
+}
+
+// Helper to verify token with backend
+async function verifyToken(token: string) {
+  await axios.post("http://localhost:8000/api/auth/verify", {}, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -39,40 +52,30 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   });
 
   useEffect(() => {
-    if (!currentUser) {
-      setSubscriptionStatus({
-        isSubscribed: false,
-        plan: null,
-        currentPeriodEnd: null,
-        loading: false,
-      });
-      return;
-    }
-
-    // Here we would ideally subscribe to Firestore to get real-time subscription updates
-    // This is a placeholder for demonstration
-    const unsubscribe = onSnapshot(
-      doc(db, "users", currentUser.uid),
-      (doc) => {
-        const data = doc.data();
-        if (data?.subscriptionStatus) {
-          setSubscriptionStatus({
-            isSubscribed: data.subscriptionStatus.isSubscribed || false,
-            plan: data.subscriptionStatus.plan || null,
-            currentPeriodEnd: data.subscriptionStatus.currentPeriodEnd || null,
-            loading: false,
-          });
-        } else {
-          setSubscriptionStatus({
-            isSubscribed: false,
-            plan: null,
-            currentPeriodEnd: null,
-            loading: false,
-          });
-        }
-      },
-      (error) => {
-        console.error("Error fetching subscription:", error);
+    async function fetchSubscriptionStatus() {
+      if (!currentUser) {
+        setSubscriptionStatus({
+          isSubscribed: false,
+          plan: null,
+          currentPeriodEnd: null,
+          loading: false,
+        });
+        return;
+      }
+      setSubscriptionStatus((prev) => ({ ...prev, loading: true }));
+      try {
+        const token = await getFirebaseToken(currentUser);
+        await verifyToken(token);
+        const res = await axios.get("http://localhost:8000/api/subscription/status", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSubscriptionStatus({
+          isSubscribed: res.data.isSubscribed,
+          plan: res.data.plan,
+          currentPeriodEnd: res.data.currentPeriodEnd,
+          loading: false,
+        });
+      } catch (error) {
         toast({
           title: "Error",
           description: "Failed to load subscription information",
@@ -85,23 +88,38 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
           loading: false,
         });
       }
-    );
-
-    return () => unsubscribe();
+    }
+    fetchSubscriptionStatus();
   }, [currentUser, toast]);
 
   async function createCheckoutSession(): Promise<string> {
     if (!currentUser) {
       throw new Error("User must be logged in");
     }
-
-    // In a real implementation, we would call a Supabase Edge Function
-    // For now, we'll just simulate this with a mock URL
+    const token = await getFirebaseToken(currentUser);
+    try {
+      await verifyToken(token);
+    } catch (error) {
+      toast({
+        title: "Authentication Error",
+        description: "Failed to verify user authentication.",
+        variant: "destructive",
+      });
+      throw new Error("Failed to verify user authentication.");
+    }
     toast({
       title: "Redirecting to checkout",
       description: "You will be redirected to the payment page",
     });
-    return `https://buy.stripe.com/test_14kcO03Z976hfJKbIP?prefilled_email=${encodeURIComponent(currentUser.email)}`;
+    const res = await axios.post(
+      "http://localhost:8000/api/subscription/create-checkout-session",
+      {
+        success_url: "http://localhost:8080/chatbot",
+        cancel_url: "http://localhost:8080/pricing",
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data.url || res.data.checkout_url || res.data.session_url;
   }
 
   async function createCustomerPortalSession(): Promise<string> {

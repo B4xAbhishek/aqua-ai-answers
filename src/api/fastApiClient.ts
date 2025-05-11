@@ -2,7 +2,7 @@
 import { auth } from "@/lib/firebase";
 
 // Define the API base URL - in production this would come from environment variables
-const API_BASE_URL = "https://api.yourdomain.com"; // Replace with your actual FastAPI URL
+const API_BASE_URL = "https://localhost:8000"; // Replace with your actual FastAPI URL
 
 // Interface for chatbot response
 interface ChatbotResponse {

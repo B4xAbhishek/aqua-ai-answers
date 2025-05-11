@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from "react";
 import { useAuth } from "./AuthContext";
 import { useSubscription } from "./SubscriptionContext";
@@ -8,7 +7,7 @@ interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  timestamp: Date;
+  timestamp: string | Date;
 }
 
 // Define the API URL - in production this would come from environment variables
@@ -19,6 +18,8 @@ interface ChatbotContextType {
   isLoading: boolean;
   sendMessage: (message: string) => Promise<void>;
   clearMessages: () => void;
+  fetchChatHistory: () => Promise<void>;
+  fetchChatById: (chatId: string) => Promise<void>;
   isTrialMode: boolean;
   setTrialMode: (value: boolean) => void;
 }
@@ -41,9 +42,66 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
   const { subscriptionStatus } = useSubscription();
   const { toast } = useToast();
 
+  // Helper to get Firebase ID token
+  async function getToken() {
+    if (!currentUser) return null;
+    return await currentUser.getIdToken();
+  }
+
+  async function fetchChatHistory() {
+    setIsLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) {
+        toast({ title: "Authentication required", description: "Please log in to view chat history", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      const response = await fetch('http://localhost:8000/chat/history', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch chat history');
+      const data = await response.json();
+      setMessages(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch chat history",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function fetchChatById(chatId: string) {
+    setIsLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) {
+        toast({ title: "Authentication required", description: "Please log in to view chat", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      const response = await fetch(`http://localhost:8000/chat/${chatId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch chat');
+      const data = await response.json();
+      setMessages(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch chat",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function sendMessage(content: string) {
     if (!content.trim()) return;
-    
     if (!currentUser) {
       toast({
         title: "Authentication required",
@@ -52,8 +110,7 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
       });
       return;
     }
-
-    if (!subscriptionStatus.isSubscribed && !isTrialMode) {
+    if (!subscriptionStatus.isSubscribed && !isTrialMode && 0) {
       toast({
         title: "Subscription required",
         description: "Please subscribe or use trial to access the AI chatbot",
@@ -61,54 +118,37 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
       });
       return;
     }
-
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
       content,
       timestamp: new Date(),
     };
-    
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
-
     try {
-      // For now, we'll simulate a response while FastAPI backend is being set up
-      // In a real implementation, we would call FastAPI endpoint
-      /*
-      const response = await fetch(`${FASTAPI_URL}/api/chat`, {
+      const token = await getToken();
+      if (!token) throw new Error('No auth token');
+      const response = await fetch('http://localhost:8000/api/chat/davis-stirling', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await currentUser.getIdToken()}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ message: content }),
       });
-      
       if (!response.ok) {
         throw new Error('Failed to get response from AI');
       }
-      
       const data = await response.json();
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.response,
+        content: data.response || data.message || "No response from AI.",
         timestamp: new Date(),
       };
-      */
-      
-      // Simulate FastAPI response until backend is integrated
-      setTimeout(() => {
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: "This is a simulated response. When connected to FastAPI backend, this will be an AI-generated answer based on homeowner documents.",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botMessage]);
-        setIsLoading(false);
-      }, 1000);
+      setMessages((prev) => [...prev, botMessage]);
+      setIsLoading(false);
     } catch (error) {
       toast({
         title: "Error",
@@ -128,6 +168,8 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     sendMessage,
     clearMessages,
+    fetchChatHistory,
+    fetchChatById,
     isTrialMode,
     setTrialMode,
   };

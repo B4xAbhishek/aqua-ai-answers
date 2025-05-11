@@ -1,5 +1,5 @@
 
-# Homeowners AI Assistant
+# reThink HOA AI Assistant
 
 A web application featuring Firebase authentication, Stripe subscription integration, and an AI chatbot that provides answers based on homeowner documents.
 
@@ -93,7 +93,7 @@ FIREBASE_MEASUREMENT_ID=G-VDS8MS6850
 STRIPE_SECRET_KEY=sk_test_51JgyYXLUULiT2GqA5TqHLAGyZn8wFm9hrrd5WmCIN7Zf5nmzWjWO9IscwfYBk03luZqVUxZ1plMIqgs0kHBQiWmK00YHDdnaWq
 STRIPE_WEBHOOK_SECRET=whsec_feeImJ3ZmzRizKvdWntaP3ErFTrc65gp
 STRIPE_API_KEY=sk_test_51JgyYXLUULiT2GqA5TqHLAGyZn8wFm9hrrd5WmCIN7Zf5nmzWjWO9IscwfYBk03luZqVUxZ1plMIqgs0kHBQiWmK00YHDdnaWq
-STRIPE_PRICE_ID=price_1PqTGBLUULiT2GqA6u32FbGc
+STRIPE_PRICE_ID=price_1RL5YwLUULiT2GqAQ0JH9DFi
 ```
 
 ### FastAPI Backend Configuration
