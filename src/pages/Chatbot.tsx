@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useChatbot } from "@/contexts/ChatbotContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
@@ -9,9 +10,10 @@ import { Send, Bot } from "lucide-react";
 
 const Chatbot = () => {
   const [message, setMessage] = useState("");
-  const { messages, isLoading, sendMessage } = useChatbot();
+  const { messages, isLoading, sendMessage, isTrialMode, setTrialMode } = useChatbot();
   const { subscriptionStatus } = useSubscription();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,6 +23,13 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Check if user came from pricing page trial button
+  useEffect(() => {
+    if (location.state?.fromTrial) {
+      setTrialMode(true);
+    }
+  }, [location.state, setTrialMode]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
@@ -29,7 +38,9 @@ const Chatbot = () => {
     }
   };
 
-  if (!subscriptionStatus.isSubscribed) {
+  const hasAccess = subscriptionStatus.isSubscribed || isTrialMode;
+
+  if (!hasAccess) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
         <Bot size={64} className="text-primary mb-4" />
@@ -46,7 +57,17 @@ const Chatbot = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">AI Homeowner Assistant</h1>
+      <h1 className="text-2xl font-bold mb-2">AI Homeowner Assistant</h1>
+      {isTrialMode && (
+        <div className="bg-amber-100 border-l-4 border-amber-500 p-4 mb-6">
+          <p className="text-amber-700">
+            You're currently using the trial version. For unlimited access, please subscribe.
+            <Link to="/pricing" className="ml-2 underline">
+              Subscribe now
+            </Link>
+          </p>
+        </div>
+      )}
       
       <div className="bg-white rounded-lg shadow-md border border-gray-200 h-[60vh] flex flex-col">
         <div className="flex-1 overflow-y-auto p-4">

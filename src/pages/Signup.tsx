@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { Google } from "lucide-react";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const { signup, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,6 +46,26 @@ const Signup = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleLoading(true);
+      await signInWithGoogle();
+      toast({
+        title: "Success",
+        description: "Account created with Google",
+      });
+      navigate("/dashboard");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create account with Google",
+        variant: "destructive",
+      });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -106,6 +128,35 @@ const Signup = () => {
               )}
             </Button>
           </form>
+          
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-300"></span>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 text-gray-500 bg-white">Or continue with</span>
+            </div>
+          </div>
+          
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+          >
+            {googleLoading ? (
+              <div className="flex items-center">
+                <div className="w-4 h-4 border-2 border-primary rounded-full border-t-transparent animate-spin mr-2"></div>
+                <span>Signing up...</span>
+              </div>
+            ) : (
+              <>
+                <Google className="h-4 w-4" />
+                <span>Sign up with Google</span>
+              </>
+            )}
+          </Button>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-center text-gray-500">

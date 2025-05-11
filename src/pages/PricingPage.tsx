@@ -39,6 +39,23 @@ const PricingPage = () => {
     }
   };
 
+  const handleTrialAccess = () => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "Please login or sign up to access trial",
+      });
+      navigate("/login", { state: { from: "/chatbot" } });
+      return;
+    }
+    
+    toast({
+      title: "Access granted",
+      description: "You now have trial access to the AI chatbot",
+    });
+    navigate("/chatbot");
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
       <div className="text-center">
@@ -48,6 +65,15 @@ const PricingPage = () => {
         <p className="mt-4 text-xl text-gray-500">
           Get expert homeowner guidance with our affordable subscription plan
         </p>
+      </div>
+
+      <div className="mt-8 text-center">
+        <Button 
+          onClick={handleTrialAccess}
+          className="bg-primary hover:bg-primary-600"
+        >
+          Try AI Chatbot Now - Free Trial
+        </Button>
       </div>
 
       <div className="mt-16 flex justify-center">
