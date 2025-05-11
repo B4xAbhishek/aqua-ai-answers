@@ -101,7 +101,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       title: "Redirecting to checkout",
       description: "You will be redirected to the payment page",
     });
-    return "https://checkout.stripe.com/mockcheckout";
+    return `https://buy.stripe.com/test_14kcO03Z976hfJKbIP?prefilled_email=${encodeURIComponent(currentUser.email)}`;
   }
 
   async function createCustomerPortalSession(): Promise<string> {
