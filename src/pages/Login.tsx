@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Google } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -139,7 +139,7 @@ const Login = () => {
               </div>
             ) : (
               <>
-                <Google className="h-4 w-4" />
+                <LogIn className="h-4 w-4" />
                 <span>Sign in with Google</span>
               </>
             )}
