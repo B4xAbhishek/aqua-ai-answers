@@ -1,73 +1,118 @@
-# Welcome to your Lovable project
 
-## Project info
+# Homeowners AI Assistant
 
-**URL**: https://lovable.dev/projects/23f2b31c-4993-4ecc-a718-8820826070cb
+A web application featuring Firebase authentication, Stripe subscription integration, and an AI chatbot that provides answers based on homeowner documents.
 
-## How can I edit this code?
+## Project Overview
 
-There are several ways of editing your application.
+This project is a React application built with:
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui components
+- **Authentication**: Firebase Authentication (Email/Password and Google Sign-in)
+- **Payment Processing**: Stripe subscription system
+- **Backend**: FastAPI for document processing and AI integration
+- **Color Theme**: Teal (rgb(14, 164, 170))
 
-**Use Lovable**
+## Features Implemented
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/23f2b31c-4993-4ecc-a718-8820826070cb) and start prompting.
+### Authentication
+- Email/Password login and registration
+- Google Sign-in integration
+- Protected routes for authenticated users
 
-Changes made via Lovable will be committed automatically to this repo.
+### Subscription System
+- Stripe subscription integration
+- Trial mode for the AI chatbot
+- Subscription status tracking
 
-**Use your preferred IDE**
+### AI Chatbot
+- Interface to interact with AI
+- Document-based answering system
+- Trial access option
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Backend Requirements
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### FastAPI Backend Endpoints
 
-Follow these steps:
+The frontend is designed to work with a FastAPI backend that should expose the following endpoints:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+#### Authentication
+- `POST /api/auth/verify` - Verify Firebase token and create/update user in the backend
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+#### Document Management
+- `POST /api/documents/upload` - Upload homeowner documents for AI processing
+- `GET /api/documents` - Get a list of user's uploaded documents
+- `DELETE /api/documents/{document_id}` - Delete a specific document
 
-# Step 3: Install the necessary dependencies.
-npm i
+#### AI Chatbot
+- `POST /api/chat` - Send a message to the AI and get a response based on uploaded documents
+- `GET /api/chat/history` - Get the user's chat history
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+#### Subscription Management
+- `GET /api/subscription/status` - Check a user's subscription status
+- `POST /api/subscription/webhook` - Webhook endpoint for Stripe events
+
+### Backend Implementation Notes
+
+1. **Document Processing**:
+   - The backend should parse and extract text from uploaded documents (PDF, DOC, etc.)
+   - Store document content in a vector database for efficient AI retrieval
+   - Use embeddings to match user questions with relevant document sections
+
+2. **AI Integration**:
+   - Integrate with OpenAI or similar LLM APIs
+   - Implement retrieval-augmented generation (RAG) pattern
+   - Ensure responses are based only on the uploaded documents
+
+3. **Authentication Flow**:
+   - Frontend authenticates users with Firebase
+   - Backend verifies Firebase tokens
+   - Use Firebase UID as the user identifier across systems
+
+4. **Stripe Integration**:
+   - Process subscription events from Stripe webhooks
+   - Update user subscription status in the database
+   - Enforce access control based on subscription status
+
+## Environment Variables
+
+The following environment variables are required:
+
+### Firebase Configuration
+```
+FIREBASE_API_KEY=AIzaSyCWGkmSFQRu_vCMAj7kh7hApmc2OM1QYxs
+FIREBASE_AUTH_DOMAIN=davis-sterling-test.firebaseapp.com
+FIREBASE_PROJECT_ID=davis-sterling-test
+FIREBASE_STORAGE_BUCKET=davis-sterling-test.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=684568252316
+FIREBASE_APP_ID=1:684568252316:web:7f9a31902669b393774259
+FIREBASE_MEASUREMENT_ID=G-VDS8MS6850
 ```
 
-**Edit a file directly in GitHub**
+### Stripe Configuration
+```
+STRIPE_SECRET_KEY=sk_test_51JgyYXLUULiT2GqA5TqHLAGyZn8wFm9hrrd5WmCIN7Zf5nmzWjWO9IscwfYBk03luZqVUxZ1plMIqgs0kHBQiWmK00YHDdnaWq
+STRIPE_WEBHOOK_SECRET=whsec_feeImJ3ZmzRizKvdWntaP3ErFTrc65gp
+STRIPE_API_KEY=sk_test_51JgyYXLUULiT2GqA5TqHLAGyZn8wFm9hrrd5WmCIN7Zf5nmzWjWO9IscwfYBk03luZqVUxZ1plMIqgs0kHBQiWmK00YHDdnaWq
+STRIPE_PRICE_ID=price_1PqTGBLUULiT2GqA6u32FbGc
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### FastAPI Backend Configuration
+```
+FASTAPI_BASE_URL=https://api.yourdomain.com
+```
 
-**Use GitHub Codespaces**
+## Deployment Instructions
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+1. Set up the FastAPI backend and deploy it
+2. Configure Firebase project and authentication settings
+3. Set up Stripe account with subscription products and prices
+4. Deploy the frontend application
+5. Configure environment variables for production
 
-## What technologies are used for this project?
+## Next Steps
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/23f2b31c-4993-4ecc-a718-8820826070cb) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Complete the FastAPI backend implementation
+2. Add document upload functionality to the frontend
+3. Implement comprehensive subscription management
+4. Add usage analytics and monitoring
+5. Enhance the chatbot UI with features like conversation history and document reference
