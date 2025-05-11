@@ -1,5 +1,5 @@
 
-# reThink HOA AI Assistant
+# Davis Sitrling Act AI Assistant
 
 A web application featuring Firebase authentication, Stripe subscription integration, and an AI chatbot that provides answers based on homeowner documents.
 
